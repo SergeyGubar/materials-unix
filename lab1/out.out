@@ -1,4 +1,14 @@
-Date: Sun  1 Mar 11:59:03 EET 2020
---- Hardware ---
-model name	: Intel(R) Core(TM) i5-9600K CPU @ 3.70GHz
-15954
+Date: Sun  1 Mar 16:56:03 EET 2020
+---- Hardware ----
+CPU: model name	: Intel(R) Core(TM) i5-9600K CPU @ 3.70GHz
+RAM: 15930 MB
+Manufacturer: 	Manufacturer: ASUSTeK COMPUTER INC.
+Manufacturer: 	Product Name: ROG STRIX Z390-F GAMING
+System Serial Number: 	Serial Number: 181242900200157
+---- System ----
+OS Distribution: "Ubuntu 18.04.4 LTS"
+Kernel version: #32~18.04.1-Ubuntu SMP Mon Feb 3 14:05:59 UTC 2020
+Installation date: Filesystem created:       Sun Mar 24 18:48:52 2019
+Hostname: Sergey-PC
+Uptime 16:56:03
+Running processes: 347
