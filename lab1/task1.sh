@@ -96,10 +96,10 @@ collectInfo() {
             if [ -z "$ip_addr" ]; then
                 ip_addr='-/-'
             fi
-            echo "${var}: ${ip_addr}\n" >> $1
+            echo "${var}: ${ip_addr}" >> $1
         done
     fi 
-    echo "----EOF----\n" >> $1
+    echo "----EOF----" >> $1
 }
 
 if (($# > 3)); then
