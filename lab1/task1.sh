@@ -17,8 +17,27 @@ collectInfo() {
     echo "---- Hardware ----" >> $1 
 
     cpu=$(cat /proc/cpuinfo | grep 'model name' | uniq)
-    echo "CPU: $cpu"
-    echo "CPU: $cpu" >> $1
+
+    
+    if [ $? -ne 0 ]; then
+        echo "A"
+        >&2 echo "Failed to fetch CPU info, skipping..."
+        cpu="Unknown"
+    else
+        echo $?
+        echo "B $cpu"
+        cpu="CPU: $cpu"
+    fi
+    echo $cpu >> $1
+
+    if [ $? -ne 0 ]; then
+        >&2 echo "Failed to fetch memory info, skipping..."
+        mem_info="Unknown"
+    else
+        mem_info=${mem_info##*: }
+        mem_info=${mem_info%%kB}
+        mem_info="$((mem_info / 1024)) Mi"
+    fi
 
     ram=$(free -m | grep Mem: | awk '{print $2}')
     echo "RAM: $ram MB"
@@ -82,7 +101,7 @@ while getopts "n:" OPTION; do
         if ! (($OPTARG >= 1)); then
             print_error "-n option must be an integer > 1, got $OPTARG"
         else
-            _n=$OPTARG
+            n=$OPTARG
         fi
     else
         print_error "-n must be an integer, got $OPTARG"
@@ -121,13 +140,12 @@ if [ -f "$file" ]; then
         file="${file}-0000"
     else
         last_createdfile_name=${allfiles_created_before[$((num_found - 1))]}
-        # remove the largest possible '*-' string from the beginning of the variable's contents
         last_created_number=${last_createdfile_name##*-}
-        last_created_number=$(expr "$last_created_number" + 1) # we use expr because otherwise 0100 -> 65 (octal -> dec)
+        last_created_number=$(expr "$last_created_number" + 1)
         new_created_number="$(printf "%04d" $last_created_number)"
         file="${file}-${new_created_number}"
         if [ $n -ne -1 ] && [ $n -le $num_found ]; then
-            leave_nfiles=$(expr $num_found - $_n + 1) # we delete +1 file because we will create a new just after
+            leave_nfiles=$(expr $num_found - $_n + 1) #
             for var in ${allfiles_created_before[@]:0:$leave_nfiles}; do
                 echo "Deleting old output file ${var}..."
                 rm "${parent_directory}/${var}"
