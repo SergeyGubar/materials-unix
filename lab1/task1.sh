@@ -17,41 +17,35 @@ collectInfo() {
     echo "---- Hardware ----" >> $1 
 
     cpu=$(cat /proc/cpuinfo | grep 'model name' | uniq)
-
     
-    if [ $? -ne 0 ]; then
-        echo "A"
+    if [ -z $cpu ]; then
         >&2 echo "Failed to fetch CPU info, skipping..."
-        cpu="Unknown"
+        cpu="CPU: Unknown"
     else
-        echo $?
-        echo "B $cpu"
         cpu="CPU: $cpu"
     fi
     echo $cpu >> $1
 
-    if [ $? -ne 0 ]; then
+    ram=$(free -m | grep Mem: | awk '{print $2}')
+
+    if [ -z $ram ]; then
         >&2 echo "Failed to fetch memory info, skipping..."
-        mem_info="Unknown"
+        ram="RAM: Unknown"
     else
-        mem_info=${mem_info##*: }
-        mem_info=${mem_info%%kB}
-        mem_info="$((mem_info / 1024)) Mi"
+        ram="RAM ${ram}"
     fi
 
-    ram=$(free -m | grep Mem: | awk '{print $2}')
-    echo "RAM: $ram MB"
-    echo "RAM: $ram MB" >> $1
+   echo $ram >> $1
 
-    manufacturer=$(sudo dmidecode --type baseboard | grep Manufacturer: || echo Unknown)
+    manufacturer=$(dmidecode --type baseboard | grep Manufacturer: || echo Unknown)
     echo "Manufacturer: $manufacturer"
     echo "Manufacturer: $manufacturer" >> $1
 
-    product_name=$(sudo dmidecode -t baseboard | grep -i 'Product name' || echo Unknown)
+    product_name=$(dmidecode -t baseboard | grep -i 'Product name' || echo Unknown)
     echo "Product name: $product_name"
     echo "Manufacturer: $product_name" >> $1
 
-    serial_number=$(sudo dmidecode -t baseboard | grep -i Serial || echo Unkown)
+    serial_number=$(dmidecode -t baseboard | grep -i Serial || echo Unkown)
     echo "System Serial Number: $serial_number"
     echo "System Serial Number: $serial_number" >> $1
 
@@ -65,9 +59,19 @@ collectInfo() {
     echo "Kernel version: $kernel_version"
     echo "Kernel version: $kernel_version" >> $1
 
-    install_date=$(sudo dumpe2fs $(mount | grep 'on \/ ' | awk '{print $1}') | grep 'Filesystem created: ')
-    echo "Installation date: $install_date"
-    echo "Installation date: $install_date" >> $1
+    created_info=$(dumpe2fs $(mount | grep 'on / ' | awk '{print $1}') | grep 'Filesystem created: ')
+    echo "AAAA"
+    echo "$created_info"
+    if [ -z $created_info ]; then
+        >&2 echo "Failed to fetch installation date info, skipping..."
+        created_info="Unknown"
+    else
+        created_info=${created_info#*:}
+        created_info=$(echo "$created_info" | awk '$1=$1')  
+    fi
+
+    echo "Installation date: $created_info"
+    echo "Installation date: $created_info" >> $1
 
     hostname=$(hostname)
     echo "Hostname: $hostname"
@@ -76,7 +80,6 @@ collectInfo() {
     uptime=$(uptime | awk '{print $1}')
     echo "Uptime $uptime"
     echo "Uptime $uptime" >> $1
-
 
     running_proccesses=$(ps aux | wc -l)
     echo "Running processes: $running_proccesses"
@@ -87,8 +90,22 @@ collectInfo() {
     echo "User logged in: $id"
     echo "User logged in: $id" >> $1
 
-    echo "---- Network ----"
+    echo "---- Network ----" >> $1
 
+    net_interfaces=($(ip link show | grep -oE '^[0-9]+:\s[^\w]+:' | awk '{print $2}' | sed 's/://'))
+    if [ -z net_interfaces ]; then
+        >&2 echo "Failed to fetch network info, skipping..."
+        echo "\n" >> $1
+    else
+        for var in ${net_interfaces[@]}; do
+            ip_addr=$(ip addr show "$var" | grep -E 'inet ' | awk '{print $2}')
+            if [ -z "$ip_addr" ]; then
+                ip_addr='-/-'
+            fi
+            echo "${var}: ${ip_addr}\n" >> $1
+        done
+    fi 
+    echo "----EOF----\n" >> $1
 }
 
 if (($# > 3)); then
