@@ -2,11 +2,6 @@
 # ./task1.sh -h | --help -n num file
 # Write all data to file, or to ~/bash/task1.out if it's not specified
 
-print_error() {
-    >&2 echo "$1"
-    exit 1
-}
-
 if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
   echo "Usage ./task1.sh [-h | --help] [-n num] [file]";
   exit 0;
@@ -115,36 +110,36 @@ fi
 while getopts "n:" OPTION; do
     if [[ "$OPTARG" =~ ^-?[0-9]+$ ]]; then
         if ! (($OPTARG >= 1)); then
-            print_error "-n must be an integer > 1, got $OPTARG"
+            >&2 echo "-n must be an integer > 1, got $OPTARG"
+            exit 1
         else
             _n=$OPTARG
         fi
     else
-        print_error "-n must be an integer, got $OPTARG"
+        >&2 echo "-n must be an integer, got $OPTARG"
+        exit 1
     fi
 done
+
 shift $(($OPTIND - 1))
 _file=$1
 
-# if arguments not specified
 if [ -z "$_n" ]; then
     _n=-1
 fi
 
-# if arguments not specified
 if [ -z "$_file" ]; then
     _file="$HOME/bash/task1.out"
 fi
 
 parent_directory=$(dirname "$_file")
 file_name=$(basename $_file)
-# check that directory for output exists
 if [ ! -d $parent_directory ]; then
     echo "Directory $parent_directory does not exist, creating..."
     error_msg=$(mkdir -p "$parent_directory" 2>&1)
-    # check if creating a directory failed
     if [ $? -ne 0 ]; then
-        print_error "Error creating directory $parent_directory, reason: $error_msg"
+        >&2 echo "Error creating directory $parent_directory, reason: $error_msg"
+        exit 1
     fi
 fi
 
@@ -152,20 +147,18 @@ if [ -f "$_file" ]; then
     cur_d=$(date "+%Y%m%d")
 
     _file="${_file}-${cur_d}"
-    # we get all the files with -nnnn in their names, sorted numerically from lowest to highest
     all_files_created_before=($(ls -1v "$parent_directory" | grep -E "^$file_name-[0-9]{4,}"))
     num_found=${#all_files_created_before[@]}
-    if [ $num_found -eq 0 ]; then # if no such files found (i.e. len(all_files...) == 0)
+    if [ $num_found -eq 0 ]; then
         _file="${_file}-0000"
     else
         last_createdfile_name=${all_files_created_before[$((num_found - 1))]}
-        # remove the largest possible '*-' string from the beginning of the variable's contents
         last_created_number=${last_createdfile_name##*-}
-        last_created_number=$(expr "$last_created_number" + 1) # we use expr because otherwise 0100 -> 65 (octal -> dec)
+        last_created_number=$(expr "$last_created_number" + 1)
         new_created_number="$(printf "%04d" $last_created_number)"
         _file="${_file}-${new_created_number}"
         if [ $_n -ne -1 ] && [ $_n -le $num_found ]; then
-            leave_n_files=$(expr $num_found - $_n + 1) # we delete +1 file because we will create a new just after
+            leave_n_files=$(expr $num_found - $_n + 1)
             for var in ${all_files_created_before[@]:0:$leave_n_files}; do
                 echo "Deleting old output file ${var}..."
                 rm "${parent_directory}/${var}"
