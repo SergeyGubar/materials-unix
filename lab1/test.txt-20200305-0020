@@ -1,0 +1,22 @@
+Date: Thu  5 Mar 07:48:17 EET 2020
+---- Hardware ----
+CPU: " Intel(R) Core(TM) i5-9600K CPU @ 3.70GHz"
+RAM 15930 MB
+Manufacturer: ASUSTeK COMPUTER INC.
+Product: ROG STRIX Z390-F GAMING
+System Serial Number:	Serial Number: 181242900200157
+---- System ----
+OS Distribution: "Ubuntu 18.04.4 LTS"
+Kernel version: #32~18.04.1-Ubuntu SMP Mon Feb 3 14:05:59 UTC 2020
+Installation date:        Sun Mar 24 18:48:52 2019
+Hostname: Sergey-PC
+Uptime 07:48:17
+Running processes: 335
+User logged in: 1000
+---- Network ----
+lo: 127.0.0.1/8
+eno1: 192.168.1.207/24
+br-57a300e713d7: 172.18.0.1/16
+docker0: 172.17.0.1/16
+veth983f310@if5: -/-
+----EOF----

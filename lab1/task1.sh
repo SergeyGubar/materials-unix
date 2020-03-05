@@ -13,36 +13,38 @@ collectInfo() {
 
     cpu=$(cat /proc/cpuinfo | grep 'model name' | uniq)
     
-    if [ -z $cpu ]; then
-        >&2 echo "Failed to fetch CPU info, skipping..."
+    if [ -z "$cpu" ]; then
+        echo "Failed to fetch CPU info, skipping..." 1>&2
         cpu="CPU: Unknown"
     else
-        cpu="CPU: $cpu"
+        cpu=${cpu##*:}
+        cpu=$(echo $cpu | sed -e 's/^[[:space:]]*//')
+        cpu="CPU: \"$cpu\""
     fi
     echo $cpu >> $1
 
     ram=$(free -m | grep Mem: | awk '{print $2}')
 
-    if [ -z $ram ]; then
-        >&2 echo "Failed to fetch memory info, skipping..."
+    if [ -z "$ram" ]; then
+        >&2 echo "Memory info - error"
         ram="RAM: Unknown"
     else
-        ram="RAM ${ram}"
+        ram="RAM ${ram} MB"
     fi
 
    echo $ram >> $1
 
-    manufacturer=$(dmidecode --type baseboard | grep Manufacturer: || echo Unknown)
-    echo "Manufacturer: $manufacturer"
-    echo "Manufacturer: $manufacturer" >> $1
+    manufacturer=$(sudo dmidecode --type baseboard | grep Manufacturer: || echo Unknown)
+    echo "Manufacturer:${manufacturer#*:}"
+    echo "Manufacturer:${manufacturer#*:}" >> $1
 
-    product_name=$(dmidecode -t baseboard | grep -i 'Product name' || echo Unknown)
-    echo "Product name: $product_name"
-    echo "Manufacturer: $product_name" >> $1
+    product_name=$(sudo dmidecode -t baseboard | grep -i 'Product name' || echo Unknown)
+    echo "Product:${product_name#*:}"
+    echo "Product:${product_name#*:}" >> $1
 
-    serial_number=$(dmidecode -t baseboard | grep -i Serial || echo Unkown)
-    echo "System Serial Number: $serial_number"
-    echo "System Serial Number: $serial_number" >> $1
+    serial_number=$(sudo dmidecode -t baseboard | grep -i Serial || echo Unkown)
+    echo "System Serial Number:$serial_number"
+    echo "System Serial Number:$serial_number" >> $1
 
     echo "---- System ----" >> $1
 
@@ -54,14 +56,15 @@ collectInfo() {
     echo "Kernel version: $kernel_version"
     echo "Kernel version: $kernel_version" >> $1
 
-    created_info=$(dumpe2fs $(mount | grep 'on / ' | awk '{print $1}') | grep 'Filesystem created: ')
-    echo "$created_info"
-    if [ -z $created_info ]; then
-        >&2 echo "Failed to fetch installation date info, skipping..."
+    created_info=$(sudo dumpe2fs $(mount | grep 'on / ' | awk '{print $1}') | grep 'Filesystem created: ')
+    echo $created_info
+
+    if [ -z "$created_info" ]; then
+        echo "Installation date - error" 1>&2
         created_info="Unknown"
     else
         created_info=${created_info#*:}
-        created_info=$(echo "$created_info" | awk '$1=$1')  
+        created_info=$(echo $created_info | sed -e 's/^[[:space:]]*//')
     fi
 
     echo "Installation date: $created_info"
@@ -87,8 +90,8 @@ collectInfo() {
     echo "---- Network ----" >> $1
 
     net_interfaces=($(ip link show | grep -oE '^[0-9]+:\s[^\w]+:' | awk '{print $2}' | sed 's/://'))
-    if [ -z net_interfaces ]; then
-        >&2 echo "Failed to fetch network info, skipping..."
+    if [ -z "$net_interfaces" ]; then
+        echo "Network info - error" 1>&2
         echo "\n" >> $1
     else
         for var in ${net_interfaces[@]}; do
@@ -102,8 +105,8 @@ collectInfo() {
     echo "----EOF----" >> $1
 }
 
-if (($# > 3)); then
-    >&2 echo "Too many arguments";
+if (($# > 3)) ; then
+    echo "Too many arguments" 1>&2;
     exit 1;
 fi
 
