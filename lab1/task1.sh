@@ -2,9 +2,23 @@
 # ./task1.sh -h | --help -n num file
 # Write all data to file, or to ~/bash/task1.out if it's not specified
 
+check_directory() {
+    if [ ! -d $parent_directory ]; then
+        echo "Directory $parent_directory does not exist, creating..."
+        error_msg=$(mkdir -p "$parent_directory" 2>&1)
+    if [ $? -ne 0 ]; then
+        >&2 echo "Error creating directory $parent_directory, reason: $error_msg"
+        exit 1
+    fi
+fi
+
+}
+
 if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
-  echo "Usage ./task1.sh [-h | --help] [-n num] [file]";
-  exit 0;
+    echo "Usage ./task1.sh [-h | --help] [-n num] [file]";
+    echo "Script gathers system information and writes it to the [file] option";
+    echo "[n] parameter specifies, how many files with the similar name can be in output directory";
+    exit 0;
 fi
 
 collectInfo() {
@@ -14,8 +28,13 @@ collectInfo() {
     cpu=$(cat /proc/cpuinfo | grep 'model name' | uniq)
     
     if [ -z "$cpu" ]; then
-        echo "Failed to fetch CPU info, skipping..." 1>&2
-        cpu="CPU: Unknown"
+        if [[ $LANG =~ uk_UA ]]; then
+            echo "Немає інформації про CPU" 1>&2
+            cpu="CPU: Невідомо"
+        else
+            echo "Failed to fetch CPU info, skipping..." 1>&2
+            cpu="CPU: Unknown"
+        fi
     else
         cpu=${cpu##*:}
         cpu=$(echo $cpu | sed -e 's/^[[:space:]]*//')
@@ -26,8 +45,13 @@ collectInfo() {
     ram=$(free -m | grep Mem: | awk '{print $2}')
 
     if [ -z "$ram" ]; then
-        >&2 echo "Memory info - error"
-        ram="RAM: Unknown"
+        if [[ $LANG =~ uk_UA ]]; then
+            echo "Немає інформації про RAM" 1>&2
+            ram ="RAM: Невідомо"
+        else
+            echo "Memory info - error" 1>&2
+            ram="RAM: Unknown"
+        fi
     else
         ram="RAM ${ram} MB"
     fi
@@ -106,69 +130,77 @@ collectInfo() {
 }
 
 if (($# > 3)) ; then
-    echo "Too many arguments" 1>&2;
+    if [[ $LANG =~ uk_UA ]]; then
+        echo "Забагато аргументів" 1>&2
+    else
+        echo "Too many arguments" 1>&2;
+    fi
     exit 1;
 fi
 
 while getopts "n:" OPTION; do
     if [[ "$OPTARG" =~ ^-?[0-9]+$ ]]; then
         if ! (($OPTARG >= 1)); then
-            >&2 echo "-n must be an integer > 1, got $OPTARG"
+            if [[ $LANG =~ uk_UA ]]; then
+                echo "-n має бути числом, більшим за 1" 1>&2
+            else
+                echo "-n must be an integer > 1, got $OPTARG" >&2
+            fi
             exit 1
         else
-            _n=$OPTARG
+            number_of_files=$OPTARG
         fi
     else
-        >&2 echo "-n must be an integer, got $OPTARG"
+        if [[ $LANG =~ uk_UA ]]; then
+            echo "-n має бути числом" 1>&2
+        else
+            echo "-n must be an integer, got $OPTARG" >&2
+        fi
         exit 1
     fi
 done
 
 shift $(($OPTIND - 1))
-_file=$1
+outFile=$1
 
-if [ -z "$_n" ]; then
-    _n=-1
+# Default n
+if [ -z "$number_of_files" ]; then
+    number_of_files=-1
 fi
 
-if [ -z "$_file" ]; then
-    _file="$HOME/bash/task1.out"
+# Default file
+if [ -z "$outFile" ]; then
+    outFile="$HOME/bash/task1.out"
 fi
 
-parent_directory=$(dirname "$_file")
-file_name=$(basename $_file)
-if [ ! -d $parent_directory ]; then
-    echo "Directory $parent_directory does not exist, creating..."
-    error_msg=$(mkdir -p "$parent_directory" 2>&1)
-    if [ $? -ne 0 ]; then
-        >&2 echo "Error creating directory $parent_directory, reason: $error_msg"
-        exit 1
-    fi
-fi
+parent_directory=$(dirname "$outFile")
+file_name=$(basename $outFile)
 
-if [ -f "$_file" ]; then
+check_directory
+
+if [ -f "$outFile" ]; then
     cur_d=$(date "+%Y%m%d")
 
-    _file="${_file}-${cur_d}"
+    outFile="${outFile}-${cur_d}"
     all_files_created_before=($(ls -1v "$parent_directory" | grep -E "^$file_name-[0-9]{4,}"))
     num_found=${#all_files_created_before[@]}
+ 
     if [ $num_found -eq 0 ]; then
-        _file="${_file}-0000"
+        outFile="${outFile}-0000"
     else
         last_createdfile_name=${all_files_created_before[$((num_found - 1))]}
         last_created_number=${last_createdfile_name##*-}
         last_created_number=$(expr "$last_created_number" + 1)
         new_created_number="$(printf "%04d" $last_created_number)"
-        _file="${_file}-${new_created_number}"
-        if [ $_n -ne -1 ] && [ $_n -le $num_found ]; then
-            leave_n_files=$(expr $num_found - $_n + 1)
+        outFile="${outFile}-${new_created_number}"
+        if [ $number_of_files -ne -1 ] && [ $number_of_files -le $num_found ]; then
+            leave_n_files=$(expr $num_found - $number_of_files + 1)
             for var in ${all_files_created_before[@]:0:$leave_n_files}; do
-                echo "Deleting old output file ${var}..."
                 rm "${parent_directory}/${var}"
             done
         fi
     fi
 fi
 
-collectInfo $_file
-echo "Created output file $_file at $(date)."
+collectInfo $outFile
+echo "Created output file $outFile at $(date)."
