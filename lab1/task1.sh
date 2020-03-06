@@ -58,15 +58,15 @@ collectInfo() {
 
    echo $ram >> $1
 
-    manufacturer=$(sudo dmidecode --type baseboard | grep Manufacturer: || echo Unknown)
+    manufacturer=$(dmidecode --type baseboard | grep Manufacturer: || echo Unknown)
     echo "Manufacturer:${manufacturer#*:}"
     echo "Manufacturer:${manufacturer#*:}" >> $1
 
-    product_name=$(sudo dmidecode -t baseboard | grep -i 'Product name' || echo Unknown)
+    product_name=$(dmidecode -t baseboard | grep -i 'Product name' || echo Unknown)
     echo "Product:${product_name#*:}"
     echo "Product:${product_name#*:}" >> $1
 
-    serial_number=$(sudo dmidecode -t baseboard | grep -i Serial || echo Unkown)
+    serial_number=$(dmidecode -t baseboard | grep -i Serial || echo Unkown)
     echo "System Serial Number:$serial_number"
     echo "System Serial Number:$serial_number" >> $1
 
@@ -80,7 +80,7 @@ collectInfo() {
     echo "Kernel version: $kernel_version"
     echo "Kernel version: $kernel_version" >> $1
 
-    created_info=$(sudo dumpe2fs $(mount | grep 'on / ' | awk '{print $1}') | grep 'Filesystem created: ')
+    created_info=$(dumpe2fs $(mount | grep 'on / ' | awk '{print $1}') | grep 'Filesystem created: ')
     echo $created_info
 
     if [ -z "$created_info" ]; then
