@@ -39,8 +39,7 @@ create_backup() {
 }
 
 change_permissions() {
-    sudo chown root:root $HOME/bin/task1.sh
-    sudo chmod 755 $HOME/bin/task1.sh
+    chmod 755 $HOME/bin/task1.sh
 }
 
 
