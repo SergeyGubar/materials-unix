@@ -6,12 +6,24 @@ check_directory() {
     if [ ! -d $parent_directory ]; then
         echo "Directory $parent_directory does not exist, creating..."
         error_msg=$(mkdir -p "$parent_directory" 2>&1)
+    fi
     if [ $? -ne 0 ]; then
         >&2 echo "Error creating directory $parent_directory, reason: $error_msg"
         exit 1
     fi
-fi
+}
 
+remove_old_files() {
+    updated_files_created_before=($(ls -1v "$parent_directory" | grep -E "^$filename_with_date"))
+    num_files=${#updated_files_created_before[@]}
+
+    if [ $number_of_files -ne -1 ] && [ $number_of_files -le $num_files ]; then
+        for ((i = $num_files - 1; i >= $number_of_files - 1; i--)); do
+            file_to_delete="${updated_files_created_before[$i]}"
+            echo "Delete $file_to_delete"
+            rm -f "$parent_directory/$file_to_delete"
+        done
+    fi
 }
 
 if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
@@ -21,7 +33,7 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     exit 0;
 fi
 
-collectInfo() {
+collect() {
     echo "Date: $(date)" > $1 
     echo "---- Hardware ----" >> $1 
 
@@ -127,6 +139,8 @@ collectInfo() {
         done
     fi 
     echo "----EOF----" >> $1
+
+    echo "Job is done"
 }
 
 if (($# > 3)) ; then
@@ -161,14 +175,18 @@ while getopts "n:" OPTION; do
 done
 
 shift $(($OPTIND - 1))
+
+# Get outfile from args
 outFile=$1
 
-# Default n
+# Default n value
+
 if [ -z "$number_of_files" ]; then
     number_of_files=-1
 fi
 
-# Default file
+# Default file value
+
 if [ -z "$outFile" ]; then
     outFile="$HOME/bash/task1.out"
 fi
@@ -176,31 +194,44 @@ fi
 parent_directory=$(dirname "$outFile")
 file_name=$(basename $outFile)
 
+
 check_directory
 
-if [ -f "$outFile" ]; then
-    cur_d=$(date "+%Y%m%d")
+cur_d=$(date "+%Y%m%d")
 
-    outFile="${outFile}-${cur_d}"
-    all_files_created_before=($(ls -1v "$parent_directory" | grep -E "^$file_name-[0-9]{4,}"))
+file_with_date="${outFile}-${cur_d}"
+filename_with_date="${file_name}-${cur_d}"
+
+if [ -f "$outFile" ]; then
+    # get all files created today with numbers (like 0000)
+    all_files_created_before=($(ls -1v "$parent_directory" | grep -E "^$filename_with_date"))
+    # number of these files
     num_found=${#all_files_created_before[@]}
- 
-    if [ $num_found -eq 0 ]; then
-        outFile="${outFile}-0000"
-    else
-        last_createdfile_name=${all_files_created_before[$((num_found - 1))]}
-        last_created_number=${last_createdfile_name##*-}
-        last_created_number=$(expr "$last_created_number" + 1)
-        new_created_number="$(printf "%04d" $last_created_number)"
-        outFile="${outFile}-${new_created_number}"
-        if [ $number_of_files -ne -1 ] && [ $number_of_files -le $num_found ]; then
-            leave_n_files=$(expr $num_found - $number_of_files + 1)
-            for var in ${all_files_created_before[@]:0:$leave_n_files}; do
-                rm "${parent_directory}/${var}"
-            done
-        fi
-    fi
+    echo $num_found
+
+    if [ $num_found -ne 0 ]; then
+        last_created_file_name=${all_files_created_before[$((num_found - 1))]}
+        # remove all text, leave only number (0000)
+        last_created_number=${last_created_file_name##*-}
+        
+        new_number=$(expr "$last_created_number" + 1)
+
+        for ((i = $num_found - 1; i >= 0; i--)); do
+            new_number_formatted="$(printf "%04d" $new_number)"
+            old_file=${all_files_created_before[$i]}
+            new_file="${filename_with_date}-${new_number_formatted}"
+            
+            mv "$parent_directory/$old_file" "$parent_directory/$new_file"
+
+            new_number=$((new_number - 1))
+        done   
+    fi  
+
+    # move task.out -> task1.out-date-0000 (Initial move)
+    mv "$outFile" "$file_with_date-0000"
 fi
 
-collectInfo $outFile
-echo "Created output file $outFile at $(date)."
+# Write all data
+collect "$outFile"
+
+remove_old_files
