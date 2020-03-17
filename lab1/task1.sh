@@ -3,22 +3,25 @@
 # Write all data to file, or to ~/bash/task1.out if it's not specified
 
 check_directory() {
-    if [ ! -d $parent_directory ]; then
-        echo "Directory $parent_directory does not exist, creating..."
-        error_msg=$(mkdir -p "$parent_directory" 2>&1)
+    if [ ! -d $1 ]; then
+        echo "Directory was not found and will be automatically created."
+        mkdir -p "$1" 2>&1
     fi
     if [ $? -ne 0 ]; then
-        >&2 echo "Error creating directory $parent_directory, reason: $error_msg"
+        if [[ $LANG =~ uk_UA ]]; then
+            echo "Директорію не було створено" 1>&2
+        else
+            echo "Error creating directory" 1>&2
+        fi
         exit 1
     fi
 }
 
 remove_old_files() {
     updated_files_created_before=($(ls -1v "$parent_directory" | grep -E "^$filename_with_date"))
-    num_files=${#updated_files_created_before[@]}
-
-    if [ $number_of_files -ne -1 ] && [ $number_of_files -le $num_files ]; then
-        for ((i = $num_files - 1; i >= $number_of_files - 1; i--)); do
+    length=$(ls -v "$parent_directory" | grep -E "^$filename_with_date" | wc -l)
+    if [ $number_of_files -ne -1 ] && [ $number_of_files -le $length ]; then
+        for ((i = $length - 1; i >= $number_of_files - 1; i--)); do
             file_to_delete="${updated_files_created_before[$i]}"
             echo "Delete $file_to_delete"
             rm -f "$parent_directory/$file_to_delete"
@@ -174,64 +177,51 @@ while getopts "n:" OPTION; do
     fi
 done
 
-shift $(($OPTIND - 1))
-
 # Get outfile from args
-outFile=$1
-
-# Default n value
-
-if [ -z "$number_of_files" ]; then
-    number_of_files=-1
-fi
+output_file=$3
 
 # Default file value
-
-if [ -z "$outFile" ]; then
-    outFile="$HOME/bash/task1.out"
+if [ -z "$output_file" ]; then
+    # output_file="$HOME/bash/task1.out"
+    output_file="/home/sergey/Downloads/test1.txt"
 fi
 
-parent_directory=$(dirname "$outFile")
-file_name=$(basename $outFile)
 
 
-check_directory
 
-cur_d=$(date "+%Y%m%d")
+# File rotation
 
-file_with_date="${outFile}-${cur_d}"
-filename_with_date="${file_name}-${cur_d}"
+parent_directory=$(dirname "$output_file")
+file_name=$(basename $output_file)
 
-if [ -f "$outFile" ]; then
+check_directory "$parent_directory"
+
+current_date=$(date "+%Y%m%d")
+filename_with_date="${file_name}-${current_date}"
+
+
+if [ -f "$output_file" ]; then
     # get all files created today with numbers (like 0000)
-    all_files_created_before=($(ls -1v "$parent_directory" | grep -E "^$filename_with_date"))
+    all_files_with_numbers=($(ls -v "$parent_directory" | grep -E "^$filename_with_date"))
     # number of these files
-    num_found=${#all_files_created_before[@]}
-    echo $num_found
+    length=$(ls -v "$parent_directory" | grep -E "^$filename_with_date" | wc -l)
 
-    if [ $num_found -ne 0 ]; then
-        last_created_file_name=${all_files_created_before[$((num_found - 1))]}
+    if [ $length -ne 0 ]; then
+        last_created_file_name=${all_files_with_numbers[$((length - 1))]}
         # remove all text, leave only number (0000)
-        last_created_number=${last_created_file_name##*-}
-        
-        new_number=$(expr "$last_created_number" + 1)
-
-        for ((i = $num_found - 1; i >= 0; i--)); do
-            new_number_formatted="$(printf "%04d" $new_number)"
-            old_file=${all_files_created_before[$i]}
-            new_file="${filename_with_date}-${new_number_formatted}"
-            
-            mv "$parent_directory/$old_file" "$parent_directory/$new_file"
-
-            new_number=$((new_number - 1))
+        last_created_number=($(echo $last_created_file_name | grep -oP "\d{4}$"))
+        for ((i = $length - 1; i >= 0; i--)); do
+            num=$(($i + 1))            
+            new_number_formatted="$(printf "%04d" $num)"
+            mv "$parent_directory/${all_files_with_numbers[$i]}" "$parent_directory/${filename_with_date}-${new_number_formatted}"
         done   
-    fi  
+    fi
 
-    # move task.out -> task1.out-date-0000 (Initial move)
-    mv "$outFile" "$file_with_date-0000"
+    # move task.out -> task1.out-date-0000 (last move)
+    mv "$output_file" "${output_file}-${current_date}-0000"
 fi
 
 # Write all data
-collect "$outFile"
+collect "$output_file"
 
 remove_old_files
