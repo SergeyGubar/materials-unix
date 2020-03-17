@@ -180,10 +180,14 @@ done
 # Get outfile from args
 output_file=$3
 
+if [ -z "$output_file" ]; then
+    echo "-n you must specify N" >&2
+    exit 1
+fi
+
 # Default file value
 if [ -z "$output_file" ]; then
-    # output_file="$HOME/bash/task1.out"
-    output_file="/home/sergey/Downloads/test1.txt"
+    output_file="$HOME/bash/task1.out"
 fi
 
 
