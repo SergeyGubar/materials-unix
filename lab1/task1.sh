@@ -18,13 +18,14 @@ check_directory() {
 }
 
 remove_old_files() {
-    updated_files_created_before=($(ls -1v "$parent_directory" | grep -E "^$filename_with_date"))
-    length=$(ls -v "$parent_directory" | grep -E "^$filename_with_date" | wc -l)
+    files=($(ls -1v "$parent_directory" | grep -E "^$1"))
+    length=$(ls -v "$parent_directory" | grep -E "^$1" | wc -l)
+    # If we have files overflow
     if [ $number_of_files -ne -1 ] && [ $number_of_files -le $length ]; then
-        for ((i = $length - 1; i >= $number_of_files - 1; i--)); do
-            file_to_delete="${updated_files_created_before[$i]}"
+        for ((i = $number_of_files - 1; i < $length; i++)); do
+            file_to_delete="${files[$i]}"
+            rm "$parent_directory/$file_to_delete"
             echo "Delete $file_to_delete"
-            rm -f "$parent_directory/$file_to_delete"
         done
     fi
 }
@@ -180,7 +181,7 @@ done
 # Get outfile from args
 output_file=$3
 
-if [ -z "$output_file" ]; then
+if [ -z "$number_of_files" ]; then
     echo "-n you must specify N" >&2
     exit 1
 fi
@@ -212,7 +213,7 @@ if [ -f "$output_file" ]; then
 
     if [ $length -ne 0 ]; then
         last_created_file_name=${all_files_with_numbers[$((length - 1))]}
-        # remove all text, leave only number (0000)
+        # remove all text, leave only number (like 0000)
         last_created_number=($(echo $last_created_file_name | grep -oP "\d{4}$"))
         for ((i = $length - 1; i >= 0; i--)); do
             num=$(($i + 1))            
@@ -228,4 +229,4 @@ fi
 # Write all data
 collect "$output_file"
 
-remove_old_files
+remove_old_files "$filename_with_date"
