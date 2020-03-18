@@ -6,14 +6,17 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     exit 0;
 fi
 
-# TODO: Ukrainian
 check_directory() {
     if [ ! -d $1 ]; then
-        echo "Directory $1 does not exist, creating..."
-        error_msg=$(mkdir -p "$1" 2>&1)
+        echo "Directory was not found and will be automatically created."
+        mkdir -p "$1" 2>&1
     fi
     if [ $? -ne 0 ]; then
-        >&2 echo "Error creating directory $1, reason: $error_msg"
+        if [[ $LANG =~ uk_UA ]]; then
+            echo "Директорію не було створено" 1>&2
+        else
+            echo "Error creating directory" 1>&2
+        fi
         exit 1
     fi
 }
