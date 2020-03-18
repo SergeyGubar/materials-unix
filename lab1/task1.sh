@@ -5,7 +5,7 @@
 check_directory() {
     if [ ! -d $1 ]; then
         echo "Directory was not found and will be automatically created."
-        mkdir -p "$1" 2>&1
+        mkdir -pv "$1"
     fi
     if [ $? -ne 0 ]; then
         if [[ $LANG =~ uk_UA ]]; then
@@ -18,13 +18,13 @@ check_directory() {
 }
 
 remove_old_files() {
-    files=($(ls -1v "$parent_directory" | grep -E "^$1"))
-    length=$(ls -v "$parent_directory" | grep -E "^$1" | wc -l)
+    files=($(ls -1v "$2" | grep -E "^$1"))
+    length=$(ls -v "$2" | grep -E "^$1" | wc -l)
     # If we have files overflow
     if [ $number_of_files -ne -1 ] && [ $number_of_files -le $length ]; then
         for ((i = $number_of_files - 1; i < $length; i++)); do
             file_to_delete="${files[$i]}"
-            rm "$parent_directory/$file_to_delete"
+            rm "$2/$file_to_delete"
             echo "Delete $file_to_delete"
         done
     fi
@@ -147,14 +147,20 @@ collect() {
     echo "Job is done"
 }
 
-if (($# > 3)) ; then
-    if [[ $LANG =~ uk_UA ]]; then
-        echo "Забагато аргументів" 1>&2
-    else
-        echo "Too many arguments" 1>&2;
+validate_args() {
+    if (($# > 3)) ; then
+        if [[ $LANG =~ uk_UA ]]; then
+            echo "Забагато аргументів" 1>&2
+        else
+            echo "Too many arguments" 1>&2;
+        fi
+        exit 1;
     fi
-    exit 1;
-fi
+    if [ -z "$number_of_files" ]; then
+        echo "you must specify N" >&2
+        exit 1
+    fi
+}
 
 while getopts "n:" OPTION; do
     if [[ "$OPTARG" =~ ^-?[0-9]+$ ]]; then
@@ -178,13 +184,10 @@ while getopts "n:" OPTION; do
     fi
 done
 
+validate_args
+
 # Get outfile from args
 output_file=$3
-
-if [ -z "$number_of_files" ]; then
-    echo "-n you must specify N" >&2
-    exit 1
-fi
 
 # Default file value
 if [ -z "$output_file" ]; then
@@ -193,40 +196,37 @@ fi
 
 
 
-
 # File rotation
-
 parent_directory=$(dirname "$output_file")
-file_name=$(basename $output_file)
-
 check_directory "$parent_directory"
 
-current_date=$(date "+%Y%m%d")
-filename_with_date="${file_name}-${current_date}"
-
+# Write all data
+collect temp.out
 
 if [ -f "$output_file" ]; then
-    # get all files created today with numbers (like 0000)
-    all_files_with_numbers=($(ls -v "$parent_directory" | grep -E "^$filename_with_date"))
-    # number of these files
+    current_date=$(date "+%Y%m%d")
+    file_name=$(basename $output_file)
+    filename_with_date="${file_name}-${current_date}"
+    # number of files with numbers
     length=$(ls -v "$parent_directory" | grep -E "^$filename_with_date" | wc -l)
 
-    if [ $length -ne 0 ]; then
-        last_created_file_name=${all_files_with_numbers[$((length - 1))]}
-        # remove all text, leave only number (like 0000)
+    if [ $length -gt 0 ]; then
+         # get all files created today with numbers (like 0000)
+        all_files_with_numbers=($(ls -v "$parent_directory" | grep -E "^$filename_with_date"))
+        last=$((length - 1))
+        last_created_file_name=${all_files_with_numbers[$last]}
+        # remove all text, leave only last four digits (like 0000)
         last_created_number=($(echo $last_created_file_name | grep -oP "\d{4}$"))
         for ((i = $length - 1; i >= 0; i--)); do
             num=$(($i + 1))            
             new_number_formatted="$(printf "%04d" $num)"
             mv "$parent_directory/${all_files_with_numbers[$i]}" "$parent_directory/${filename_with_date}-${new_number_formatted}"
-        done   
+        done
     fi
 
     # move task.out -> task1.out-date-0000 (last move)
     mv "$output_file" "${output_file}-${current_date}-0000"
+    remove_old_files "$filename_with_date" $parent_directory
 fi
 
-# Write all data
-collect "$output_file"
-
-remove_old_files "$filename_with_date"
+mv temp.out "$output_file"
