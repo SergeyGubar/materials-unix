@@ -20,13 +20,10 @@ if [ "$#" -ne 0 ]; then
     exit 1
 fi
 
-log=log.out
-
 log_message() {
     current_date=$(date)
     timestamp=$(date +%s)
     message=$(printf "%s; %s; %s" "$current_date" "$timestamp" "$1")
-    echo $message >> $log
     logger $message
 }
 
@@ -109,8 +106,6 @@ echo "My process ${current_pid}"
 trap parent_term SIGTERM
 trap parent_interruption SIGINT
 trap parent_ping SIGUSR2
-
-echo "Log start" > $log
 
 (
     while true; do
