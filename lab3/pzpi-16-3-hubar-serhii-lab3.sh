@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
-    echo "Usage ./task2.sh";
+    echo "Usage ./pzpi-16-3-hubar-serhii-lab3.sh";
     echo "Script installs task1.sh as executable and adds it in PATH";
     exit 0;
 fi
@@ -23,6 +23,7 @@ check_directory() {
 
 add_to_path() {
     echo "export PATH="\$HOME/bin:\$PATH"" >> $HOME/.bash_profile
+    echo "alias system_info_task='pzpi-16-3-hubar-serhii-lab2.sh'" >> $HOME/.bashrc
 }
 
 create_backup() {
@@ -42,13 +43,13 @@ create_backup() {
 }
 
 change_permissions() {
-    chmod 755 $HOME/bin/task1.sh
+    chmod 755 $HOME/bin/pzpi-16-3-hubar-serhii-lab2.sh
 }
 
 
 install() {
     check_directory "$HOME/bin"
-    cp task1.sh "$HOME/bin"
+    cp pzpi-16-3-hubar-serhii-lab2.sh "$HOME/bin"
     create_backup
     add_to_path 
     change_permissions
