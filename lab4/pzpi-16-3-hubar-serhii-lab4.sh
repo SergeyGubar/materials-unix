@@ -20,11 +20,22 @@ if [ "$#" -ne 0 ]; then
     exit 1
 fi
 
+me=$(basename "$0")
+
+if [ ! -d "$HOME/log" ]; then
+    mkdir "$HOME/log"
+fi
+
+if [ ! -f "$HOME/log/$me" ]; then
+    touch "$HOME/log/$me"
+fi
+
 log_message() {
     current_date=$(date)
     timestamp=$(date +%s)
     message=$(printf "%s; %s; %s" "$current_date" "$timestamp" "$1")
     logger $message
+    echo $message >> "$HOME/log/$me"
 }
 
 send_test_signal_to_child() {
@@ -120,7 +131,7 @@ echo "Ping pid ${ping_pid}"
 while read -r -p "What you wanna do? For options - open --help " && [[ $REPLY != q ]]; do
   case $REPLY in
     test) send_test_signal_to_child;;
-    exit) kill_child_process;;
+    kill) kill_child_process;;
     back) send_ping_back_signal_to_child;;
     *) echo "Try Again.";;
   esac
