@@ -20,14 +20,14 @@ if [ "$#" -ne 0 ]; then
     exit 1
 fi
 
-me=$(basename "$0")
-
 if [ ! -d "$HOME/log" ]; then
     mkdir "$HOME/log"
 fi
 
-if [ ! -f "$HOME/log/$me" ]; then
-    touch "$HOME/log/$me"
+log_path="$HOME/log/pzpi-16-3-hubar-serhii-lab4.log"
+
+if [ ! -f "${log_path}" ]; then
+    touch "${log_path}"
 fi
 
 log_message() {
@@ -35,7 +35,7 @@ log_message() {
     timestamp=$(date +%s)
     message=$(printf "%s; %s; %s" "$current_date" "$timestamp" "$1")
     logger $message
-    echo $message >> "$HOME/log/$me"
+    echo $message >> "${log_path}"
 }
 
 send_test_signal_to_child() {
