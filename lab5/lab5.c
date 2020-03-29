@@ -17,8 +17,8 @@ void log_message(char *str, int pid, int signal, char* signal_str)
 {
     FILE *file;
     const char *home = getenv("HOME");
-    // TODO: Uncomment to log in HOME
-    // char *path = concat(home, "/log/lab1.txt");
+
+    char *path = concat(home, "/log/lab1.txt");
 
     time_t rawtime;
     struct tm *info;
@@ -32,8 +32,6 @@ void log_message(char *str, int pid, int signal, char* signal_str)
 
     char* timestamp = (char*)malloc(20 * sizeof(char));
     sprintf(timestamp, "%d",(int)time(NULL));
-
-    char *path = "/Users/gubarsergey/Documents/projects/university/materials-unix/lab5/lab5.txt";
     file = fopen(path, "a+");
 
     char* message = (char*)malloc(100 * sizeof(char));
