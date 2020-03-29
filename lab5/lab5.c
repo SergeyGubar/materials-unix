@@ -18,7 +18,8 @@ void log_message(char *str, int pid, int signal, char* signal_str)
     FILE *file;
     const char *home = getenv("HOME");
 
-    char *path = concat(home, "/log/lab1.txt");
+    // TODO: Create directory if needed
+    char *path = concat(home, "/log/pzpi-16-3-hubar-serhii.log");
 
     time_t rawtime;
     struct tm *info;
