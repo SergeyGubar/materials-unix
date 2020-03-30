@@ -4,6 +4,9 @@
 #include <unistd.h>
 #include <signal.h>
 #include <time.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 char *concat(const char *s1, const char *s2)
 {
@@ -17,11 +20,16 @@ void log_message(char *str, int pid, int signal, char* signal_str)
 {
     FILE *file;
     const char *home = getenv("HOME");
+    
+    struct stat st = {0};
 
-    // TODO: Create directory if needed
-    // char *path = "/Users/gubarsergey/Documents/projects/university/materials-unix/lab5/test.log";
-    char *path = "/home/pzpi-16-3-hubar-serhii/materials-unix/lab5/test.log";
-
+    char *log_dir = concat(home, "/log");
+    
+    if (stat(log_dir, &st) == -1) {
+        printf("Directory fail %s", log_dir);
+        mkdir(log_dir, 0777);
+    }
+    char *path = concat(log_dir, "/pzpi-16-3-hubar-serhii-lab5.log");
     time_t rawtime;
     struct tm *info;
     char buffer[80];
@@ -44,6 +52,7 @@ void log_message(char *str, int pid, int signal, char* signal_str)
     char* logger_formatted_message = (char*)malloc(100 * sizeof(char));
     sprintf(logger_formatted_message, "\"%s\"", message);
     system(concat("logger ", logger_formatted_message));
+    
 }
 
 void ping_child_process(int pid)
@@ -111,58 +120,52 @@ int main()
     } else {
         signal(SIGUSR2, parent_ping_back_handler);
         signal(SIGCHLD, SIG_IGN);
-        int pid2 = fork();
-        if (pid2 == 0) {
-            while(1) {
-                kill(pid, SIGUSR1);
-            }
-        } else {
-            while (1)
-            {
-                printf("Enter the action:\n");
-                char text_choice[100];
-                int choice;
+    
+        while (1)
+        {
+            printf("Enter the action:\n");
+            char text_choice[100];
+            int choice;
 
-                scanf("%s", text_choice);
-                if (strcmp(text_choice, "ping") == 0)
-                {
-                    choice = PING_CHOICE;
-                }
-                if (strcmp(text_choice, "kill") == 0)
-                {
-                    choice = KILL_CHOICE;
-                }
-                if (strcmp(text_choice, "back") == 0)
-                {
-                    choice = PING_BACK_CHOICE;
-                }
-                if (strcmp(text_choice, "quit") == 0)
-                {
-                    choice = EXIT_CHOICE;
-                }
-                int exit;
-                switch (choice)
-                {
-                case 10:
-                    ping_child_process(pid);
-                    break;
-                case 11:
-                    kill_child_process(pid);
-                    break;
-                case 12:
-                    ping_back(pid);
-                    break;
-                case 13:
-                    exit = 1;
-                    break;
-                default:
-                    printf("Try again\n");
-                    break;
-                }
-                if (exit == 1)
-                {
-                    break;
-                }
+            scanf("%s", text_choice);
+            if (strcmp(text_choice, "ping") == 0)
+            {
+                choice = PING_CHOICE;
+            }
+            if (strcmp(text_choice, "kill") == 0)
+            {
+                choice = KILL_CHOICE;
+            }
+            if (strcmp(text_choice, "back") == 0)
+            {
+                choice = PING_BACK_CHOICE;
+            }
+            if (strcmp(text_choice, "quit") == 0)
+            {
+                choice = EXIT_CHOICE;
+            }
+            int exit;
+            switch (choice)
+            {
+            case 10:
+                ping_child_process(pid);
+                break;
+            case 11:
+                kill_child_process(pid);
+                break;
+            case 12:
+                ping_back(pid);
+                break;
+            case 13:
+                exit = 1;
+                break;
+            default:
+                printf("Try again\n");
+                break;
+            }
+            if (exit == 1)
+            {
+                break;
             }
         }
         
