@@ -113,10 +113,9 @@ int main()
         signal(SIGCHLD, SIG_IGN);
         int pid2 = fork();
         if (pid2 == 0) {
-            // while(1) {
-            //     kill(pid, SIGUSR1);
-            //     sleep(5);
-            // }
+            while(1) {
+                kill(pid, SIGUSR1);
+            }
         } else {
             while (1)
             {
