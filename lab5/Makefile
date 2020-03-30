@@ -1,15 +1,19 @@
 all:
-	echo "All"
+	gcc -o pzpi-16-3-hubar-serhii-lab5.out pzpi-16-3-hubar-serhii-lab5.c
 
 install:
-	gcc -o lab5.out lab5.c
+	./configure.sh
+	gcc -o pzpi-16-3-hubar-serhii-lab5.out pzpi-16-3-hubar-serhii-lab5.c
+	./install.sh
 
 uninstall:
-	echo "Uninstall"
+	make clean
+	rm ${HOME}/bin/pzpi-16-3-hubar-serhii-lab5.out
 
 clean:
-	echo "Clean"
+	rm *.out || true
+	rm *.log || true
 
 run:
-	make install
-	./lab5.out
+	gcc -o pzpi-16-3-hubar-serhii-lab5.out pzpi-16-3-hubar-serhii-lab5.c
+	./pzpi-16-3-hubar-serhii-lab5.out

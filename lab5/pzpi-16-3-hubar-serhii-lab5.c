@@ -15,19 +15,21 @@ char *concat(const char *s1, const char *s2)
 
 void log_message(char *str, int pid, int signal, char* signal_str)
 {
+    printf("%s", "Test");
     FILE *file;
     const char *home = getenv("HOME");
 
     // TODO: Create directory if needed
-    char *path = concat(home, "/log/pzpi-16-3-hubar-serhii.log");
+    // char *path = "/Users/gubarsergey/Documents/projects/university/materials-unix/lab5/test.log";
+    char *path = concat(home, "/log/pzpi-16-3-hubar-serhii-lab5.log");
 
     time_t rawtime;
     struct tm *info;
     char buffer[80];
 
-    time( &rawtime );
+    time(&rawtime);
 
-    info = localtime( &rawtime );
+    info = localtime(&rawtime);
 
     strftime(buffer,80,"%a, %d %b %Y %X %z", info);
 
@@ -58,19 +60,20 @@ void kill_child_process(int pid)
 
 void ping_back(int pid)
 {
-    kill(pid, SIGCHLD);
+    kill(pid, SIGUSR2);
 }
 
 void parent_ping_back_handler() {
-    log_message("Nothing - child pinged back signal", getpid(), 18, "SIGCHLD");
+    log_message("Nothing - child pinged back signal", getpid(), 17, "SIGUSR2");
 }
 
 void child_usr1_handler() {
     log_message("Nothing - ping signal", getpid(), 16, "SIGUSR1");
 }
 
-void child_usr2_handler() {
-    log_message("Health check", getpid(), 17, "SIGUSR2");
+void child_ping_back_handler() {
+    log_message("Nothing - child pinged back signal", getpid(), 17, "SIGUSR2");
+    ping_back(getppid());
 }
 
 void child_term_handler() {
@@ -78,11 +81,9 @@ void child_term_handler() {
     exit(1);
 }
 
-void child_ping_back_handler() {
-    log_message("Child pinging back", getpid(), 18, "SIGCHLD");
-    ping_back(getppid());
+void parent_child_died_handler() {
+    log_message("Child process die", getpid(), 18, "SIGCHLD");
 }
-
 
 int main()
 {
@@ -95,19 +96,18 @@ int main()
 
     if (pid == 0) {
         signal(SIGUSR1, child_usr1_handler);
-        signal(SIGUSR2, child_usr2_handler);
         signal(SIGTERM, child_term_handler);
-        signal(SIGCHLD, child_ping_back_handler);
+        signal(SIGUSR2, child_ping_back_handler);
         while (1) {
 
         }
     } else {
-        signal(SIGCHLD, parent_ping_back_handler);
-
+        signal(SIGUSR2, parent_ping_back_handler);
+        signal(SIGCHLD, SIG_IGN);
         int pid2 = fork();
         if (pid2 == 0) {
             while(1) {
-                kill(pid, SIGUSR2);
+                kill(pid, SIGUSR1);
                 sleep(3);
             }
         } else {
