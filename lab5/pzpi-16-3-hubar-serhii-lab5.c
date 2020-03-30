@@ -15,13 +15,12 @@ char *concat(const char *s1, const char *s2)
 
 void log_message(char *str, int pid, int signal, char* signal_str)
 {
-    printf("%s", "Test");
     FILE *file;
     const char *home = getenv("HOME");
 
     // TODO: Create directory if needed
     // char *path = "/Users/gubarsergey/Documents/projects/university/materials-unix/lab5/test.log";
-    char *path = concat(home, "/log/pzpi-16-3-hubar-serhii-lab5.log");
+    char *path = "/home/pzpi-16-3-hubar-serhii/materials-unix/lab5/test.log";
 
     time_t rawtime;
     struct tm *info;
@@ -49,39 +48,47 @@ void log_message(char *str, int pid, int signal, char* signal_str)
 
 void ping_child_process(int pid)
 {
-    kill(pid, SIGUSR1);
-    printf("Pinged child process\n");
+    printf("Ping child process %d\n", pid);
+    int result = kill(pid, SIGUSR1);
+    printf("Ping result %d\n", result);
 }
 
 void kill_child_process(int pid)
 {
+    printf("Kill child process %d\n", pid);
     kill(pid, SIGTERM);
 }
 
 void ping_back(int pid)
 {
+    printf("Ping back process %d\n", pid);
     kill(pid, SIGUSR2);
 }
 
 void parent_ping_back_handler() {
+    printf("parent ping back handler\n");
     log_message("Nothing - child pinged back signal", getpid(), 17, "SIGUSR2");
 }
 
 void child_usr1_handler() {
+    printf("child usr1 handler\n");
     log_message("Nothing - ping signal", getpid(), 16, "SIGUSR1");
 }
 
 void child_ping_back_handler() {
+    printf("child ping back handler\n");
     log_message("Nothing - child pinged back signal", getpid(), 17, "SIGUSR2");
     ping_back(getppid());
 }
 
 void child_term_handler() {
+    printf("child term handler\n");
     log_message("Child termination", getpid(), 15, "SIGTERM");
     exit(1);
 }
 
 void parent_child_died_handler() {
+    printf("parent child die handler\n");
     log_message("Child process die", getpid(), 18, "SIGCHLD");
 }
 
@@ -106,10 +113,10 @@ int main()
         signal(SIGCHLD, SIG_IGN);
         int pid2 = fork();
         if (pid2 == 0) {
-            while(1) {
-                kill(pid, SIGUSR1);
-                sleep(3);
-            }
+            // while(1) {
+            //     kill(pid, SIGUSR1);
+            //     sleep(3);
+            // }
         } else {
             while (1)
             {
