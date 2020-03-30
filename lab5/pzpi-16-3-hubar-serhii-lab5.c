@@ -137,16 +137,16 @@ int main()
                 int exit;
                 switch (choice)
                 {
-                case PING_CHOICE:
+                case 10:
                     ping_child_process(pid);
                     break;
-                case KILL_CHOICE:
+                case 11:
                     kill_child_process(pid);
                     break;
-                case PING_BACK_CHOICE:
+                case 12:
                     ping_back(pid);
                     break;
-                case EXIT_CHOICE:
+                case 13:
                     exit = 1;
                     break;
                 default:
