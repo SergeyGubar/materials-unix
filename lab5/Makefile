@@ -2,6 +2,8 @@ all:
 	gcc -o pzpi-16-3-hubar-serhii-lab5.out pzpi-16-3-hubar-serhii-lab5.c
 
 install:
+	chmod +x ./install.sh
+	chmod +x ./configure.sh
 	./configure.sh
 	gcc -o pzpi-16-3-hubar-serhii-lab5.out pzpi-16-3-hubar-serhii-lab5.c
 	./install.sh
