@@ -58,9 +58,7 @@ void log_message(char *str, int pid, int signal, char* signal_str)
 
 void ping_child_process(int pid)
 {
-    printf("Ping child process %d\n", pid);
     int result = kill(pid, SIGUSR1);
-    printf("Ping result %d\n", result);
 }
 
 void *ping_child(void *x_void_ptr)
@@ -84,7 +82,8 @@ void kill_child_process(int pid)
 void ping_back(int pid)
 {
     printf("Ping back process %d\n", pid);
-    kill(pid, SIGUSR2);
+    int result = kill(pid, SIGUSR2);
+    printf("Ping back result %d\n", result);
 }
 
 void parent_ping_back_handler() {
@@ -93,7 +92,6 @@ void parent_ping_back_handler() {
 }
 
 void child_usr1_handler() {
-    printf("child usr1 handler\n");
     log_message("Nothing - ping signal", getpid(), 16, "SIGUSR1");
 }
 
@@ -132,7 +130,7 @@ int main()
         }
     } else {
         signal(SIGUSR2, parent_ping_back_handler);
-        signal(SIGCHLD, SIG_IGN);
+        // signal(SIGCHLD, parent_child_died_handler);
 
         pthread_t ping_thread;
 
