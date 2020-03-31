@@ -7,6 +7,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <pthread.h>
 
 char *concat(const char *s1, const char *s2)
 {
@@ -60,6 +61,18 @@ void ping_child_process(int pid)
     printf("Ping child process %d\n", pid);
     int result = kill(pid, SIGUSR1);
     printf("Ping result %d\n", result);
+}
+
+void *ping_child(void *x_void_ptr)
+{
+    int *pid = (int *)x_void_ptr;
+
+    while (1)
+    {
+        sleep(3);
+        ping_child_process(*pid);
+    }
+    return NULL;
 }
 
 void kill_child_process(int pid)
@@ -120,6 +133,13 @@ int main()
     } else {
         signal(SIGUSR2, parent_ping_back_handler);
         signal(SIGCHLD, SIG_IGN);
+
+        pthread_t ping_thread;
+
+        if(pthread_create(&ping_thread, NULL, ping_child, &pid)) {
+            fprintf(stderr, "Error creating thread\n");
+            return 1;
+        }
     
         while (1)
         {

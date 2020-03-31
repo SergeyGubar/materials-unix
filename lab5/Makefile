@@ -1,11 +1,11 @@
 all:
-	gcc -o pzpi-16-3-hubar-serhii-lab5.out pzpi-16-3-hubar-serhii-lab5.c
+	gcc -pthread -o pzpi-16-3-hubar-serhii-lab5.out pzpi-16-3-hubar-serhii-lab5.c
 
 install:
 	chmod +x ./install.sh
 	chmod +x ./configure.sh
 	./configure.sh
-	gcc -o pzpi-16-3-hubar-serhii-lab5.out pzpi-16-3-hubar-serhii-lab5.c
+	gcc -pthread -o pzpi-16-3-hubar-serhii-lab5.out pzpi-16-3-hubar-serhii-lab5.c
 	./install.sh
 
 uninstall:
@@ -17,7 +17,7 @@ clean:
 	rm *.log || true
 
 run:
-	gcc -o pzpi-16-3-hubar-serhii-lab5.out pzpi-16-3-hubar-serhii-lab5.c
+	gcc -pthread -o pzpi-16-3-hubar-serhii-lab5.out pzpi-16-3-hubar-serhii-lab5.c
 	./pzpi-16-3-hubar-serhii-lab5.out
 
 archive:
