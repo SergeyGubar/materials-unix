@@ -50,7 +50,7 @@ collect() {
             cpu="CPU: Невідомо"
         else
             echo "Failed to fetch CPU info, skipping..." 1>&2
-            cpu="CPU: Unknown"
+            cpu="CPU: \"Unknown\""
         fi
     else
         cpu=${cpu##*:}
@@ -67,31 +67,27 @@ collect() {
             ram ="RAM: Невідомо"
         else
             echo "Memory info - error" 1>&2
-            ram="RAM: Unknown"
+            ram="RAM: "\"Unknown\"""
         fi
     else
         ram="RAM ${ram} MB"
     fi
 
-   echo $ram >> $1
+    echo $ram >> $1
 
-    manufacturer=$(dmidecode --type baseboard | grep Manufacturer: || echo Unknown)
-    echo "Manufacturer:${manufacturer#*:}"
-    echo "Manufacturer:${manufacturer#*:}" >> $1
+    product_name=$(dmidecode -t baseboard | grep -i 'Product name' || echo "\"Unknown\"")
+    echo "Motherboard: ${product_name#*:}"
+    echo "Motherboard: ${product_name#*:}" >> $1
 
-    product_name=$(dmidecode -t baseboard | grep -i 'Product name' || echo Unknown)
-    echo "Product:${product_name#*:}"
-    echo "Product:${product_name#*:}" >> $1
-
-    serial_number=$(dmidecode -t baseboard | grep -i Serial || echo Unkown)
-    echo "System Serial Number:$serial_number"
-    echo "System Serial Number:$serial_number" >> $1
+    serial_number=$(dmidecode -t baseboard | grep -i Serial || echo "\"Unknown\"")
+    echo "System Serial Number: $serial_number"
+    echo "System Serial Number: $serial_number" >> $1
 
     echo "---- System ----" >> $1
 
     os_distribution=$(lsb_release -a | grep "Description")
     if [ -z "$os_distribution" ]; then
-        os_distribution="Unknown"
+        os_distribution="\"Unknown\""
     else
         os_distribution=${os_distribution##*:}
         os_distribution=$(echo "$os_distribution" | awk '$1=$1')
@@ -108,7 +104,7 @@ collect() {
 
     if [ -z "$created_info" ]; then
         echo "Installation date - error" 1>&2
-        created_info="Unknown"
+        created_info="\"Unknown\""
     else
         created_info=${created_info#*:}
         created_info=$(echo $created_info | sed -e 's/^[[:space:]]*//')
@@ -122,8 +118,8 @@ collect() {
     echo "Hostname: $hostname" >> $1
 
     uptime=$(uptime | awk '{print $1}')
-    echo "Uptime $uptime"
-    echo "Uptime $uptime" >> $1
+    echo "Uptime: $uptime"
+    echo "Uptime: $uptime" >> $1
 
     running_proccesses=$(ps aux | wc -l | awk '$1=$1')
     echo "Processes running: $running_proccesses"
