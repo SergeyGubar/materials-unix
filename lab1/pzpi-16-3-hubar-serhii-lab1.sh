@@ -31,7 +31,7 @@ remove_old_files() {
 }
 
 if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
-    echo "Usage ./task1.sh [-h | --help] [-n num] [file]";
+    echo "Usage ./pzpi-16-3-hubar-serhii-lab1.sh [-h | --help] [-n num] [file]";
     echo "Script gathers system information and writes it to the [file] option";
     echo "[n] parameter specifies, how many files with the similar name can be in output directory";
     exit 0;
@@ -90,7 +90,7 @@ fi
 
 # Default file value
 if [ -z "$output_file" ]; then
-    output_file="$HOME/log/task2.out"
+    output_file="$HOME/log/task1.out"
 fi
 
 
