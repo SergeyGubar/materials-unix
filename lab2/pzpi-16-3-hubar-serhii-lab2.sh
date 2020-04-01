@@ -97,7 +97,7 @@ collect() {
     echo "OS Distribution: $os_distribution"
     
 
-    kernel_version=$(uname -v)
+    kernel_version=$(uname -r)
     echo "Kernel version: $kernel_version"
     echo "Kernel version: $kernel_version" >> $1
 
