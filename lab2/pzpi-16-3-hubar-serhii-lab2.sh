@@ -160,8 +160,7 @@ validate_args() {
         exit 1;
     fi
     if [ -z "$number_of_files" ]; then
-        echo "you must specify N" >&2
-        exit 1
+        echo "N was not specified" >&2
     fi
 }
 
@@ -190,13 +189,17 @@ done
 validate_args
 
 # Get outfile from args
-output_file=$3
+
+if [ -z $number_of_files ]; then
+    output_file=$1
+else 
+    output_file=$3
+fi
 
 # Default file value
 if [ -z "$output_file" ]; then
     output_file="$HOME/log/task2.out"
 fi
-
 
 
 # File rotation
@@ -229,7 +232,12 @@ if [ -f "$output_file" ]; then
 
     # move task.out -> task1.out-date-0000 (last move)
     mv "$output_file" "${output_file}-${current_date}-0000"
-    remove_old_files "$filename_with_date" $parent_directory
+
+    if [ ! -z $number_of_files ]; then
+        remove_old_files "$filename_with_date" $parent_directory
+    fi
+    
 fi
 
 mv temp.out "$output_file"
+echo "Out file ${output_file}"
