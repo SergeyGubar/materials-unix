@@ -194,7 +194,7 @@ output_file=$3
 
 # Default file value
 if [ -z "$output_file" ]; then
-    output_file="$HOME/bash/task1.out"
+    output_file="$HOME/log/task2.out"
 fi
 
 
