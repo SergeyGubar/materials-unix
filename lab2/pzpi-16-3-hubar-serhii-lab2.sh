@@ -145,7 +145,7 @@ collect() {
             echo "${var}: ${ip_addr}" >> $1
         done
     fi 
-    echo "----EOF----" >> $1
+    echo "----\"EOF\"----" >> $1
 
     echo "Job is done"
 }
