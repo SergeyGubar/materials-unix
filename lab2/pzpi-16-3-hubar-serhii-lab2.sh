@@ -38,7 +38,8 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
 fi
 
 collect() {
-    echo "Date: $(date '+%a, %d %b %Y %X %z')" > $1 
+    echo "Date: $(date '+%a, %d %b %Y %X %z')" > $1
+    echo "Unix Timestamp: $(date +%s)" >> $1
     echo "---- Hardware ----" >> $1 
 
     cpu=$(cat /proc/cpuinfo | grep 'model name' | uniq)
@@ -88,7 +89,13 @@ collect() {
 
     echo "---- System ----" >> $1
 
-    os_distribution=$(cat /etc/os-release | grep "PRETTY_NAME" | grep -o -E "\".+\"")
+    os_distribution=$(lsb_release -a | grep "Description")
+    if [ -z "$os_distribution" ]; then
+        os_distribution="Unknown"
+    else
+        os_distribution=${os_distribution##*:}
+        os_distribution=$(echo "$os_distribution" | awk '$1=$1')
+    fi
     echo "OS Distribution: $os_distribution"
     echo "OS Distribution: $os_distribution" >> $1
 
@@ -118,9 +125,9 @@ collect() {
     echo "Uptime $uptime"
     echo "Uptime $uptime" >> $1
 
-    running_proccesses=$(ps aux | wc -l)
-    echo "Running processes: $running_proccesses"
-    echo "Running processes: $running_proccesses" >> $1
+    running_proccesses=$(ps aux | wc -l | awk '$1=$1')
+    echo "Processes running: $running_proccesses"
+    echo "Processes running: $running_proccesses" >> $1
 
     host=$(whoami)
     id=$(id -u $host)
