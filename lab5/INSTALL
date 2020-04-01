@@ -1,0 +1,4 @@
+Installation guide:
+
+1) In root dirctory command `make all`
+2) `make install`

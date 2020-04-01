@@ -38,7 +38,7 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
 fi
 
 collect() {
-    echo "Date: $(date)" > $1 
+    echo "Date: $(date '+%a, %d %b %Y %X %z')" > $1
     echo "Job is done"
 }
 
