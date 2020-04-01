@@ -88,12 +88,14 @@ collect() {
     os_distribution=$(lsb_release -a | grep "Description")
     if [ -z "$os_distribution" ]; then
         os_distribution="\"Unknown\""
+        echo "OS Distribution: $os_distribution" >> $1
     else
         os_distribution=${os_distribution##*:}
         os_distribution=$(echo "$os_distribution" | awk '$1=$1')
+        echo "OS Distribution: \"$os_distribution\"" >> $1
     fi
     echo "OS Distribution: $os_distribution"
-    echo "OS Distribution: $os_distribution" >> $1
+    
 
     kernel_version=$(uname -v)
     echo "Kernel version: $kernel_version"
