@@ -34,7 +34,7 @@ log_message() {
     current_date=$(date '+%a, %d %b %Y %X %z')
     timestamp=$(date +%s)
     message=$(printf "%s; %s; %s" "$current_date" "$timestamp" "$1")
-    logger $message
+    logger "\"${message}\""
     echo $message >> "${log_path}"
 }
 
