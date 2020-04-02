@@ -112,8 +112,22 @@ void parent_child_died_handler() {
     log_message("Child process die", getpid(), 18, "SIGCHLD");
 }
 
-int main()
+int main(int argc, char** argv)
 {
+    if(argc == 2 && strcmp(argv[1], "--help")==0)
+    {
+        printf("Runnning binary: ./pzpi-16-3-hubar-serhii-lab5.out\n");
+        printf("This program implements sub-process communication and logging to file + syslog\n");
+        printf("Available options for user interaction:\n");
+        printf("1) ping - send signal to child\n");
+        printf("2) back - send signal to child, child responds and sends signal to parent\n");
+        printf("3) kill - stop child process\n");
+        printf("4) quit - quit process\n");
+        return 0;
+    }
+
+    log_message("Process started", getpid(), -1, "INIT");
+
     const int PING_CHOICE = 10;
     const int KILL_CHOICE = 11;
     const int PING_BACK_CHOICE = 12;
@@ -122,6 +136,7 @@ int main()
     int pid = fork();
 
     if (pid == 0) {
+        log_message("Child process started", getpid(), -1, "INIT");
         signal(SIGUSR1, child_usr1_handler);
         signal(SIGTERM, child_term_handler);
         signal(SIGUSR2, child_ping_back_handler);
@@ -189,6 +204,7 @@ int main()
         
     }
 
+    log_message("Process finished", getpid(), -1, "END");
     
     return 0;
 }

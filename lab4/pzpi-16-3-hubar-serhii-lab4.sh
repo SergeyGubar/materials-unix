@@ -31,7 +31,7 @@ if [ ! -f "${log_path}" ]; then
 fi
 
 log_message() {
-    current_date=$(date)
+    current_date=$(date '+%a, %d %b %Y %X %z')
     timestamp=$(date +%s)
     message=$(printf "%s; %s; %s" "$current_date" "$timestamp" "$1")
     logger $message
@@ -110,9 +110,12 @@ done
 
 child=$!
 current_pid=$$
+
+log_message "${current_pid}; -1; INIT; Process start"
+log_message "${child}; -1; INIT; Child Process start"
+
 echo "Created child process ${child}"
 echo "My process ${current_pid}"
-
 
 trap parent_term SIGTERM
 trap parent_interruption SIGINT
@@ -136,5 +139,7 @@ while read -r -p "What you wanna do? For options - open --help " && [[ $REPLY !=
     *) echo "Try Again.";;
   esac
 done
+
+log_message "${current_pid}; -1; END; Parent process stop"
 
 kill $ping_pid
