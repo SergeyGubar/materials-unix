@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <pthread.h>
+#include <syslog.h>
 
 char *concat(const char *s1, const char *s2)
 {
@@ -50,10 +51,10 @@ void log_message(char *str, int pid, int signal, char* signal_str)
     fprintf(file, "%s", message);
     fclose(file);
 
-    char* logger_formatted_message = (char*)malloc(100 * sizeof(char));
-    sprintf(logger_formatted_message, "\"%s\"", message);
-    system(concat("logger ", logger_formatted_message));
-    
+    // char* logger_formatted_message = (char*)malloc(100 * sizeof(char));
+    // sprintf(logger_formatted_message, "\"%s\"", message);
+    // system(concat("logger ", logger_formatted_message));
+    syslog(LOG_INFO,"%s", message);
 }
 
 void ping_child_process(int pid)
